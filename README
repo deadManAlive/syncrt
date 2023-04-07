@@ -1,0 +1,4 @@
+syncrt
+------
+
+A Zig learning project to nudge `.srt` file's time.
