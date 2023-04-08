@@ -1,3 +1,4 @@
 # folders
 zig-*/
 example/
+build/
