@@ -2,16 +2,40 @@ const std = @import("std");
 const fmt = std.fmt;
 const printd = std.debug.print;
 const isSpace = std.ascii.isWhitespace;
+const floor = std.math.floor;
+const Allocator = std.mem.Allocator;
 
 pub const Range = struct {
     start: f32,
     end: f32,
+
+    pub fn nudge(self: *Range, delta: f32) !void {
+        if (self.start + delta < 0.0) {
+            return error.InvalidTime;
+        }
+
+        self.start += delta;
+        self.end += delta;
+    }
 };
 
-//TODO: this
-pub fn secToTime(time: f32) []const u8 {
-    _ = time;
-    return "hh:mm:ss,sss";
+pub fn secToTime(allocator: Allocator, time: f32) ![]u8 {
+    const result = try allocator.alloc(u8, 12);
+    var remaining: f32 = 0.0;
+
+    const hours = floor(time / 3600.0);
+    remaining = time - (hours * 3600.0);
+    const minutes = floor(remaining / 60.0);
+    const seconds = remaining - (minutes * 60.0);
+
+    _ = try fmt.bufPrint(result, "{d:0<2.0}:{d:0<2.0}:{d:0>6.3}", .{ hours, minutes, seconds });
+
+    const reformatted = try allocator.alloc(u8, 12);
+    std.mem.copy(u8, reformatted, result);
+
+    _ = std.mem.replace(u8, result, ".", ",", reformatted);
+
+    return reformatted;
 }
 
 pub fn timeToSec(str: []const u8) anyerror!f32 {
@@ -87,8 +111,6 @@ pub fn parseTime(str: []const u8) ?Range {
             } else |_| {
                 return null;
             }
-
-            printd("time(str): [{s}] to [{s}]\n", .{ start_time, end_time });
 
             return Range{ .start = start, .end = end };
         }
