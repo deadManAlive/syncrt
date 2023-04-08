@@ -28,7 +28,7 @@ pub fn secToTime(allocator: Allocator, time: f32) ![]u8 {
     const minutes = floor(remaining / 60.0);
     const seconds = remaining - (minutes * 60.0);
 
-    _ = try fmt.bufPrint(result, "{d:0<2.0}:{d:0<2.0}:{d:0>6.3}", .{ hours, minutes, seconds });
+    _ = try fmt.bufPrint(result, "{d:0>2.0}:{d:0>2.0}:{d:0>6.3}", .{ hours, minutes, seconds });
 
     const reformatted = try allocator.alloc(u8, 12);
     std.mem.copy(u8, reformatted, result);
