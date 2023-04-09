@@ -118,3 +118,24 @@ pub fn parseTime(str: []const u8) ?Range {
 
     return null;
 }
+
+pub fn rangeToSec(str: []const u8) ?f32 {
+    var range = std.mem.split(u8, str, "-");
+
+    var current: f32 = undefined;
+    var target: f32 = undefined;
+
+    if (timeToSec(range.next() orelse "")) |val| {
+        current = val;
+    } else |_| {
+        return null;
+    }
+
+    if (timeToSec(range.next() orelse "")) |val| {
+        target = val;
+    } else |_| {
+        return null;
+    }
+
+    return target - current;
+}

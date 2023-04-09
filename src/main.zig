@@ -23,13 +23,26 @@ pub fn main() !void {
     defer process.argsFree(alloc, args);
 
     if (args.len != 3) {
-        err("Usage: <filename> <nudge (in signed seconds)>\n", .{});
+        err("Usage: <filename> <nudge (in signed seconds OR current-target)>\n", .{});
         return error.InvalidArgs;
     }
 
     const file_name = args[1];
 
-    const shift = try fmt.parseFloat(f32, args[2]);
+    var shift: f32 = undefined;
+
+    if (fmt.parseFloat(f32, args[2])) |val| {
+        shift = val;
+    } else |_| {
+        if (parse.rangeToSec(args[2])) |val| {
+            shift = val;
+        } else {
+            err("Usage: <filename> <nudge (in signed seconds OR current-target)>\n", .{});
+            return error.InvalidArgs;
+        }
+    }
+
+    // try stdout.print("shift: {d:.3}\n", .{shift});
 
     var file_handle = try fs.cwd().openFile(file_name, .{});
     defer file_handle.close();
@@ -50,7 +63,7 @@ pub fn main() !void {
             const new_start = try parse.secToTime(allocator, r.start);
             const new_end = try parse.secToTime(allocator, r.end);
 
-            try stdout.print("{s} --> {s}\n", .{ new_start, new_end }); //TODO: comma instead of dot
+            try stdout.print("{s} --> {s}\n", .{ new_start, new_end });
         } else {
             try stdout.print("{s}\n", .{line});
         }
@@ -64,10 +77,25 @@ test "time to sec" {
     try std.testing.expectApproxEqAbs(time, 837, 1.0);
 }
 
+test "time to sec point" {
+    const time = try parse.timeToSec("00:13:57.013");
+    try std.testing.expectApproxEqAbs(time, 837, 1.0);
+}
+
+test "time to sec arbitrary" {
+    const time = try parse.timeToSec("00:13:57");
+    try std.testing.expectApproxEqAbs(time, 837, 1.0);
+}
+
+test "shift" {
+    const shift = parse.rangeToSec("00:10:00-00:11:00") orelse 0.0;
+    try std.testing.expectApproxEqAbs(shift, 60, 1.0);
+}
+
 test "sec to time" {
     var buff: [128]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buff);
     const alloc = fba.allocator();
     const result = try parse.secToTime(alloc, 837.0);
-    _ = result;
+    try std.testing.expect(std.mem.eql(u8, result, "00:13:57,000"));
 }

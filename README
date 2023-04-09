@@ -2,3 +2,13 @@ syncrt
 ------
 
 A Zig learning project to nudge `.srt` file's time.
+
+
+Usage:
+
+`syncrt <filename> <nudge (in signed seconds OR current-target)>`
+
+Example:
+
+`syncrt 2012.srt +4.04` (delay by 4.04 seconds)
+`syncrt PoM.srt 01:67:23-01:43:00` (advance by 1463 seconds)
